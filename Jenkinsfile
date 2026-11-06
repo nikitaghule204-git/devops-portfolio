@@ -94,3 +94,27 @@ pipeline {
                     usernamePassword(
                         credentialsId: 'aws-creds',
                         usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        aws ecr-public describe-images \
+                        --repository-name ${IMAGE_NAME} \
+                        --region ${AWS_REGION}
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Image Successfully Uploaded To ECR Public'
+        }
+
+        failure {
+            echo 'Pipeline Failed'
+        }
+    }
+    }
+    
