@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         IMAGE_NAME   = "devops-portfolio"
-        AWS_REGION   = "us-east-1"
-        ECR_REGISTRY = "public.ecr.aws/j0h7e6b5/devops-portfolio"
+        AWS_REGION   = "ap-south-1"
+        ECR_HOST     = "759729568917.dkr.ecr.ap-south-1.amazonaws.com"
+        ECR_REGISTRY = "759729568917.dkr.ecr.ap-south-1.amazonaws.com/devops-portfolio"
     }
 
     stages {
@@ -30,7 +31,7 @@ pipeline {
                     def scannerHome = tool 'sonar-scanner'
 
                     withSonarQubeEnv('sonarqube') {
-                        sh "${scannerHome}/bin/sonar-scanner"
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=devops-portfolio -Dsonar.projectName=devops-portfolio -Dsonar.sources=."
                     }
                 }
             }
@@ -54,8 +55,8 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        aws ecr-public get-login-password --region ${AWS_REGION} | \
-                        docker login --username AWS --password-stdin public.ecr.aws
+                        aws ecr get-login-password --region ${AWS_REGION} | \
+                        docker login --username AWS --password-stdin ${ECR_HOST}
                     '''
                 }
             }
@@ -73,9 +74,17 @@ pipeline {
 
         stage('Push To ECR') {
             steps {
-                sh '''
-                    docker push ${ECR_REGISTRY}:${BUILD_NUMBER}
-                '''
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-creds',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        docker push ${ECR_REGISTRY}:${BUILD_NUMBER}
+                    '''
+                }
             }
         }
 
@@ -85,26 +94,3 @@ pipeline {
                     usernamePassword(
                         credentialsId: 'aws-creds',
                         usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
-                    sh '''
-                        aws ecr-public describe-images \
-                        --repository-name ${IMAGE_NAME} \
-                        --region ${AWS_REGION}
-                    '''
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Image Successfully Uploaded To ECR Public'
-        }
-
-        failure {
-            echo 'Pipeline Failed'
-        }
-    }
-}
