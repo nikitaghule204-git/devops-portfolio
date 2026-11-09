@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME   = "devops-portfolio"
         AWS_REGION   = "ap-south-1"
-        ECR_REGISTRY = "public.ecr.aws/k0f1v2r6/devops-portfolio"
+        ECR_REGISTRY = "759729568917.dkr.ecr.ap-south-1.amazonaws.com/devops-portfolio"
     }
 
     stages {
