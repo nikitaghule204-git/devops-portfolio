@@ -3,9 +3,8 @@ pipeline {
 
     environment {
         IMAGE_NAME   = "devops-portfolio"
-        AWS_REGION   = "ap-south-1"
-        ECR_HOST     = "759729568917.dkr.ecr.ap-south-1.amazonaws.com"
-        ECR_REGISTRY = "759729568917.dkr.ecr.ap-south-1.amazonaws.com/devops-portfolio"
+        AWS_REGION   = "us-east-1"
+        ECR_REGISTRY = "public.ecr.aws/j0h7e6b5/devops-portfolio"
     }
 
     stages {
@@ -31,7 +30,7 @@ pipeline {
                     def scannerHome = tool 'sonar-scanner'
 
                     withSonarQubeEnv('sonarqube') {
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=devops-portfolio -Dsonar.projectName=devops-portfolio -Dsonar.sources=."
+                        sh "${scannerHome}/bin/sonar-scanner"
                     }
                 }
             }
@@ -55,8 +54,8 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                        aws ecr get-login-password --region ${AWS_REGION} | \
-                        docker login --username AWS --password-stdin ${ECR_HOST}
+                        aws ecr-public get-login-password --region ${AWS_REGION} | \
+                        docker login --username AWS --password-stdin public.ecr.aws
                     '''
                 }
             }
@@ -74,17 +73,9 @@ pipeline {
 
         stage('Push To ECR') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'aws-creds',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
-                    sh '''
-                        docker push ${ECR_REGISTRY}:${BUILD_NUMBER}
-                    '''
-                }
+                sh '''
+                    docker push ${ECR_REGISTRY}:${BUILD_NUMBER}
+                '''
             }
         }
 
@@ -116,5 +107,4 @@ pipeline {
             echo 'Pipeline Failed'
         }
     }
-    }
-    
+}
