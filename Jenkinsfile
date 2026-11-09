@@ -1,11 +1,13 @@
 pipeline {
     agent any
 
-    environment {
+       environment {
         IMAGE_NAME   = "devops-portfolio"
-        AWS_REGION   = "ap-south-1"
-        ECR_REGISTRY = "759729568917.dkr.ecr.ap-south-1.amazonaws.com/devops-portfolio"
+        AWS_REGION   = "us-east-1"
+        ECR_REGISTRY = "public.ecr.aws/j0h7e6b5/devops-portfolio"
     }
+
+
 
     stages {
 
