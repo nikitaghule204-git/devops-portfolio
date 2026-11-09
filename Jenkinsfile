@@ -25,16 +25,16 @@ pipeline {
         }
 
         stage('SonarQube Scan') {
-            steps {
-                script {
-                    def scannerHome = tool 'sonar-scanner'
+    steps {
+        script {
+            def scannerHome = tool 'sonar-scanner'
 
-                    withSonarQubeEnv('sonarqube') {
-                        sh "${scannerHome}/bin/sonar-scanner"
-                    }
-                }
+            withSonarQubeEnv('sonarqube') {
+                sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=devops-portfolio -Dsonar.projectName=devops-portfolio -Dsonar.sources=."
             }
         }
+    }
+}
 
         stage('Build Docker Image') {
             steps {
