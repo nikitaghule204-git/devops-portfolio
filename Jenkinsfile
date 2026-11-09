@@ -77,23 +77,24 @@ environment {
     }
 }
 
-        stage('Verify Image') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'aws-creds',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
-                    sh '''
-                        aws ecr-public describe-images \
-                        --repository-name ${IMAGE_NAME} \
-                        --region ${AWS_REGION}
-                    '''
-                }
-            }
+      stage('Verify Image') {
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'aws-creds',
+                usernameVariable: 'AWS_ACCESS_KEY_ID',
+                passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+            )
+        ]) {
+            sh '''
+                aws ecr describe-images \
+                --repository-name ${IMAGE_NAME} \
+                --image-ids imageTag=${BUILD_NUMBER} \
+                --region ${AWS_REGION}
+            '''
         }
+    }
+}
     }
 
     post {
