@@ -46,22 +46,7 @@ pipeline {
             }
         }
 
-        stage('ECR Login') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'aws-creds',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
-                    sh '''
-                        aws ecr-public get-login-password --region ${AWS_REGION} | \
-                        docker login --username AWS --password-stdin public.ecr.aws
-                    '''
-                }
-            }
-        }
+        
 
         stage('Tag Image') {
             steps {
@@ -73,13 +58,24 @@ pipeline {
             }
         }
 
-        stage('Push To ECR') {
-            steps {
-                sh '''
-                    docker push ${ECR_REGISTRY}:${BUILD_NUMBER}
-                '''
-            }
+       stage('Push To ECR') {
+        steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'aws-creds',
+                usernameVariable: 'AWS_ACCESS_KEY_ID',
+                passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+            )
+        ]) {
+            sh '''
+                aws ecr get-login-password --region ${AWS_REGION} | \
+                docker login --username AWS --password-stdin ${ECR_HOST}
+
+                docker push ${ECR_REGISTRY}:${BUILD_NUMBER}
+            '''
         }
+    }
+}
 
         stage('Verify Image') {
             steps {
